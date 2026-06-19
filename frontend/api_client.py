@@ -1,8 +1,13 @@
 import requests
 import os
 
-API_BASE_URL = os.environ.get("API_BASE_URL", "http://localhost:8000")
+try:
+    import streamlit as st
+    API_BASE_URL = st.secrets.get("API_BASE_URL", os.environ.get("API_BASE_URL", "http://localhost:8000"))
+except (ImportError, FileNotFoundError):
+    API_BASE_URL = os.environ.get("API_BASE_URL", "http://localhost:8000")
 
+    
 def get_health():
     try:
         r = requests.get(f"{API_BASE_URL}/health", timeout=5)
