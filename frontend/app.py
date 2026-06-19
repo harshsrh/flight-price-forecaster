@@ -6,7 +6,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from frontend.api_client import get_health, get_available_routes, predict_price, get_history
-from frontend.utils import build_forecast_curve
+from frontend.utils import build_forecast_curve, load_model_metrics
 
 st.set_page_config(
     page_title="Flight Price Forecaster",
@@ -34,9 +34,12 @@ st.caption("Predict prices and get a buy-now-or-wait recommendation")
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    source_city = st.selectbox("From", ["Delhi", "Mumbai", "Bangalore", "Kolkata", "Chennai", "Hyderabad"])
+    source_city = st.selectbox("From", ["Delhi", "Mumbai", "Bangalore"])
 with col2:
-    destination_city = st.selectbox("To", ["Mumbai", "Delhi", "Bangalore", "Kolkata", "Chennai", "Hyderabad"])
+    destination_city = st.selectbox("To", ["Mumbai", "Delhi", "Bangalore"])
+
+st.caption("⚠️ Demo currently supports Delhi↔Mumbai and Delhi→Bangalore routes (production model coverage)")
+
 with col3:
     airline = st.selectbox("Airline", ["Indigo", "Air_India", "Vistara", "GO_FIRST", "SpiceJet", "AirAsia"])
 
@@ -118,12 +121,11 @@ if predict_btn:
         st.subheader("Model performance")
         st.caption("Based on held-out test data from training")
 
+        metrics = load_model_metrics()
         p1, p2, p3 = st.columns(3)
-        p1.metric("RMSE", "₹1,847")        # replace with your actual saved metrics
-        p2.metric("MAE", "₹1,203")
-        p3.metric("Directional accuracy", "74.2%")
-        st.caption("⚠️ Replace these with values from results/final_comparison.csv")
-
+        p1.metric("RMSE", f"₹{metrics['rmse']:,.0f}" if metrics['rmse'] else "N/A")
+        p2.metric("MAE", f"₹{metrics['mae']:,.0f}" if metrics['mae'] else "N/A")
+        p3.metric("Directional accuracy", f"{metrics['directional_acc']:.1f}%" if metrics['directional_acc'] else "N/A")
 else:
     st.info("Fill in the flight details above and click **Predict price** to get started.")
 
