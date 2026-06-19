@@ -1,7 +1,11 @@
 import joblib
 import os
 import numpy as np
-from tensorflow.keras.models import load_model as keras_load
+try:
+    from tensorflow.keras.models import load_model as keras_load
+    TENSORFLOW_AVAILABLE = True
+except ImportError:
+    TENSORFLOW_AVAILABLE = False
 
 MODEL_DIR = "models"
 
@@ -39,14 +43,19 @@ class ModelRegistry:
                 print(f"  ✓ Prophet model loaded: {route_name}")
 
         # LSTM models — filename pattern: lstm_<route>.keras
-        for fname in os.listdir(MODEL_DIR):
-            if fname.startswith("lstm_") and fname.endswith(".keras"):
-                route_name = fname.replace("lstm_", "").replace(".keras", "")
-                self.lstm_models[route_name] = keras_load(f"{MODEL_DIR}/{fname}")
-                print(f"  ✓ LSTM model loaded: {route_name}")
-            if fname.startswith("lstm_scaler_") and fname.endswith(".pkl"):
-                route_name = fname.replace("lstm_scaler_", "").replace(".pkl", "")
-                self.lstm_scalers[route_name] = joblib.load(f"{MODEL_DIR}/{fname}")
+        # LSTM models — filename pattern: lstm_<route>.keras
+        # Skipped in production (no TensorFlow) to keep memory usage low.
+        if TENSORFLOW_AVAILABLE:
+            for fname in os.listdir(MODEL_DIR):
+                if fname.startswith("lstm_") and fname.endswith(".keras"):
+                    route_name = fname.replace("lstm_", "").replace(".keras", "")
+                    self.lstm_models[route_name] = keras_load(f"{MODEL_DIR}/{fname}")
+                    print(f"  ✓ LSTM model loaded: {route_name}")
+                if fname.startswith("lstm_scaler_") and fname.endswith(".pkl"):
+                    route_name = fname.replace("lstm_scaler_", "").replace(".pkl", "")
+                    self.lstm_scalers[route_name] = joblib.load(f"{MODEL_DIR}/{fname}")
+        else:
+            print("  ⚠ TensorFlow not available — skipping LSTM models (using Prophet + RF only)")
 
         self.loaded = True
         print(f"\nModels ready: RF={self.random_forest is not None}, "
