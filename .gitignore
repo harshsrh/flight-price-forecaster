@@ -1,0 +1,32 @@
+# Virtual environment
+venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Environment secrets
+.env
+
+# Raw data (regenerate from Kaggle)
+data/raw/*.csv
+
+# Processed data (regenerate by running src/preprocess.py)
+data/processed/*.csv
+data/processed/*.npy
+
+# Large model files that exceed GitHub's 100MB limit
+models/random_forest.pkl
+
+# SQLite database (regenerated on startup)
+*.db
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Streamlit cache
+.streamlit/
+
+# OS junk
+.DS_Store
+Thumbs.db
